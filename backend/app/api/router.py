@@ -1,0 +1,8 @@
+from fastapi import APIRouter
+
+from app.api.routes import health, notes
+
+
+api_router = APIRouter(prefix="/api")
+api_router.include_router(health.router, tags=["health"])
+api_router.include_router(notes.router, prefix="/notes", tags=["notes"])
