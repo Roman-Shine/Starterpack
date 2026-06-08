@@ -13,6 +13,7 @@
   --border: 214.3 31.8% 91.4%;
   --ring: 222.2 84% 4.9%;
   --radius: 0.5rem;
+  --header-height: 3.5rem;
 }
 
 @layer base {
@@ -35,7 +36,8 @@
 
 @layer components {
   .page {
-    @apply mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-10;
+    @apply mx-auto flex w-full max-w-6xl flex-col px-6 py-10;
+    min-height: calc(100dvh - var(--header-height));
   }
 
   .page-narrow {
