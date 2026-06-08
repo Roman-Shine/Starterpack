@@ -81,7 +81,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   useEffect(() => {
-    if (!token) {
+    const localToken = localStorage.getItem(TOKEN_KEY);
+    if (!localToken) {
       return;
     }
 
@@ -106,7 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     void hydrate();
-  }, [token]);
+  }, []);
 
   const value = useMemo<AuthContextValue>(
     () => ({
