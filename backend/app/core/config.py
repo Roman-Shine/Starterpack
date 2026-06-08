@@ -13,6 +13,15 @@ class Settings(BaseSettings):
     app_env: str = "local"
     database_url: str | None = None
     db_echo: bool = False
+    jwt_secret_key: str = "change-this-in-production"
+    jwt_algorithm: str = "HS256"
+    access_token_minutes: int = 15
+    refresh_token_days: int = 1
+    refresh_token_remember_days: int = 30
+    access_cookie_name: str = "access_token"
+    refresh_cookie_name: str = "refresh_token"
+    cookie_secure: bool = False
+    cookie_samesite: str = "lax"
 
     @property
     def sqlalchemy_database_url(self) -> str:

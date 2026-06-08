@@ -1,8 +1,9 @@
 from fastapi import APIRouter
 
-from app.api.routes import health, notes
+from app.api.routes import auth, health, notes
 
 
 api_router = APIRouter(prefix="/api")
 api_router.include_router(health.router, tags=["health"])
+api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
 api_router.include_router(notes.router, prefix="/notes", tags=["notes"])
