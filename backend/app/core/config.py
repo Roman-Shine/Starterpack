@@ -22,6 +22,11 @@ class Settings(BaseSettings):
     refresh_cookie_name: str = "refresh_token"
     cookie_secure: bool = False
     cookie_samesite: str = "lax"
+    cors_origins: str = "http://127.0.0.1:3000,http://localhost:3000"
+
+    @property
+    def cors_origins_list(self) -> list[str]:
+        return [item.strip() for item in self.cors_origins.split(",") if item.strip()]
 
     @property
     def sqlalchemy_database_url(self) -> str:

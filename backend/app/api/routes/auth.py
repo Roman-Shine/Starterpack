@@ -48,7 +48,12 @@ def register(payload: RegisterRequest, response: Response, db: Session = Depends
         refresh_token=refresh_token,
         remember_me=payload.remember_me,
     )
-    return AuthResponse(user=UserRead.model_validate(user), two_factor_required=False, oauth_google_available=False)
+    return AuthResponse(
+        user=UserRead.model_validate(user),
+        access_token=access_token,
+        two_factor_required=False,
+        oauth_google_available=False,
+    )
 
 
 @router.post("/login", response_model=AuthResponse)
@@ -67,6 +72,7 @@ def login(payload: LoginRequest, response: Response, db: Session = Depends(get_d
     )
     return AuthResponse(
         user=UserRead.model_validate(user),
+        access_token=access_token,
         two_factor_required=user.two_factor_enabled,
         oauth_google_available=False,
     )
@@ -79,6 +85,7 @@ def refresh_session(request: Request, response: Response, db: Session = Depends(
     set_access_cookie(response, access_token=access_token)
     return AuthResponse(
         user=UserRead.model_validate(user),
+        access_token=access_token,
         two_factor_required=user.two_factor_enabled,
         oauth_google_available=False,
     )

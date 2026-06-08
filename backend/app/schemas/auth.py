@@ -39,6 +39,7 @@ class UserRead(BaseModel):
 
 class AuthResponse(BaseModel):
     user: UserRead
+    access_token: str
     two_factor_required: bool
     oauth_google_available: bool
 

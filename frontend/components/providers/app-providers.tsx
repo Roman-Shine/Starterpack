@@ -4,6 +4,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { NextIntlClientProvider } from "next-intl";
 import { ComponentProps, ReactNode, useState } from "react";
 
+import { AuthProvider } from "@/components/providers/auth-provider";
+
 type Props = {
   children: ReactNode;
   locale: string;
@@ -15,7 +17,9 @@ export function AppProviders({ children, locale, messages }: Props) {
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages} timeZone="UTC">
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>{children}</AuthProvider>
+      </QueryClientProvider>
     </NextIntlClientProvider>
   );
 }
