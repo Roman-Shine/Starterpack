@@ -1,8 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.api.deps.auth import get_current_user, get_current_user_from_refresh
 from app.crud.user import create_user, get_user_by_email
 from app.db.session import get_db
+from app.models.user import User
 from app.schemas.auth import (
     AuthProvidersResponse,
     AuthResponse,
@@ -16,10 +19,7 @@ from app.services.auth import (
     clear_auth_cookies,
     create_access_token,
     create_refresh_token,
-    get_user_from_access_cookie,
-    get_user_from_refresh_cookie,
     hash_password,
-    set_access_cookie,
     set_auth_cookies,
 )
 
@@ -33,13 +33,17 @@ def register(payload: RegisterRequest, response: Response, db: Session = Depends
     if existing_user is not None:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered")
 
-    user = create_user(
-        db,
-        email=str(payload.email),
-        password_hash=hash_password(payload.password),
-        first_name=payload.first_name,
-        last_name=payload.last_name,
-    )
+    try:
+        user = create_user(
+            db,
+            email=str(payload.email),
+            password_hash=hash_password(payload.password),
+            first_name=payload.first_name,
+            last_name=payload.last_name,
+        )
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered")
     access_token = create_access_token(user.id)
     refresh_token = create_refresh_token(user.id, payload.remember_me)
     set_auth_cookies(
@@ -79,10 +83,19 @@ def login(payload: LoginRequest, response: Response, db: Session = Depends(get_d
 
 
 @router.post("/refresh", response_model=AuthResponse)
-def refresh_session(request: Request, response: Response, db: Session = Depends(get_db)) -> AuthResponse:
-    user = get_user_from_refresh_cookie(request, db)
+def refresh_session(
+    response: Response,
+    refresh_context: tuple[User, bool] = Depends(get_current_user_from_refresh),
+) -> AuthResponse:
+    user, remember_me = refresh_context
     access_token = create_access_token(user.id)
-    set_access_cookie(response, access_token=access_token)
+    refresh_token = create_refresh_token(user.id, remember_me)
+    set_auth_cookies(
+        response,
+        access_token=access_token,
+        refresh_token=refresh_token,
+        remember_me=remember_me,
+    )
     return AuthResponse(
         user=UserRead.model_validate(user),
         access_token=access_token,
@@ -97,8 +110,7 @@ def logout(response: Response) -> None:
 
 
 @router.get("/me", response_model=UserRead)
-def get_me(request: Request, db: Session = Depends(get_db)) -> UserRead:
-    user = get_user_from_access_cookie(request, db)
+def get_me(user: User = Depends(get_current_user)) -> UserRead:
     return UserRead.model_validate(user)
 
 
@@ -108,6 +120,5 @@ def auth_providers() -> AuthProvidersResponse:
 
 
 @router.get("/2fa/status", response_model=TwoFactorStatusResponse)
-def two_factor_status(request: Request, db: Session = Depends(get_db)) -> TwoFactorStatusResponse:
-    user = get_user_from_access_cookie(request, db)
+def two_factor_status(user: User = Depends(get_current_user)) -> TwoFactorStatusResponse:
     return TwoFactorStatusResponse(enabled=user.two_factor_enabled)

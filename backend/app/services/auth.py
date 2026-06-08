@@ -1,4 +1,5 @@
 from datetime import UTC, datetime, timedelta
+from typing import Any
 from uuid import uuid4
 
 import jwt
@@ -23,7 +24,13 @@ def verify_password(plain_password: str, password_hash: str) -> bool:
     return password_hasher.verify(plain_password, password_hash)
 
 
-def _create_token(*, user_id: str, token_type: str, expires_delta: timedelta) -> str:
+def _create_token(
+    *,
+    user_id: str,
+    token_type: str,
+    expires_delta: timedelta,
+    extra_claims: dict[str, Any] | None = None,
+) -> str:
     now = datetime.now(UTC)
     payload = {
         "sub": user_id,
@@ -32,6 +39,8 @@ def _create_token(*, user_id: str, token_type: str, expires_delta: timedelta) ->
         "exp": int((now + expires_delta).timestamp()),
         "jti": str(uuid4()),
     }
+    if extra_claims:
+        payload.update(extra_claims)
     return jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
 
 
@@ -49,6 +58,7 @@ def create_refresh_token(user_id: str, remember_me: bool) -> str:
         user_id=user_id,
         token_type="refresh",
         expires_delta=timedelta(days=days),
+        extra_claims={"rm": remember_me},
     )
 
 
@@ -59,6 +69,9 @@ def decode_token(token: str, expected_type: str) -> dict:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token") from exc
     if payload.get("type") != expected_type:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token type")
+    sub = payload.get("sub")
+    if not isinstance(sub, str) or not sub:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token subject")
     return payload
 
 
@@ -83,19 +96,6 @@ def set_auth_cookies(response: Response, *, access_token: str, refresh_token: st
         secure=settings.cookie_secure,
         samesite=settings.cookie_samesite,
         max_age=refresh_max_age,
-        path="/",
-    )
-
-
-def set_access_cookie(response: Response, *, access_token: str) -> None:
-    access_max_age = settings.access_token_minutes * 60
-    response.set_cookie(
-        key=settings.access_cookie_name,
-        value=access_token,
-        httponly=True,
-        secure=settings.cookie_secure,
-        samesite=settings.cookie_samesite,
-        max_age=access_max_age,
         path="/",
     )
 
@@ -128,7 +128,7 @@ def get_user_from_access_cookie(request: Request, db: Session) -> User:
     return user
 
 
-def get_user_from_refresh_cookie(request: Request, db: Session) -> User:
+def get_refresh_context(request: Request, db: Session) -> tuple[User, bool]:
     token = request.cookies.get(settings.refresh_cookie_name)
     if token is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
@@ -137,4 +137,5 @@ def get_user_from_refresh_cookie(request: Request, db: Session) -> User:
     user = get_user_by_id(db, user_id=user_id)
     if user is None or not user.is_active:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
-    return user
+    remember_me = bool(payload.get("rm", False))
+    return user, remember_me

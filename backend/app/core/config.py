@@ -1,4 +1,5 @@
 from functools import lru_cache
+from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -21,7 +22,7 @@ class Settings(BaseSettings):
     access_cookie_name: str = "access_token"
     refresh_cookie_name: str = "refresh_token"
     cookie_secure: bool = False
-    cookie_samesite: str = "lax"
+    cookie_samesite: Literal["lax", "strict", "none"] = "lax"
     cors_origins: str = "http://127.0.0.1:3000,http://localhost:3000"
 
     @property
