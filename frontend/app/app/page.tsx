@@ -1,3 +1,9 @@
 export default function AppHomePage() {
-  return <main className="p-6">App</main>;
+  return (
+    <main className="page justify-center">
+      <section className="page-narrow surface stack">
+        <h1>App</h1>
+      </section>
+    </main>
+  );
 }

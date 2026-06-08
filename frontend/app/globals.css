@@ -7,12 +7,46 @@
   --foreground: 222.2 84% 4.9%;
   --primary: 222.2 47.4% 11.2%;
   --primary-foreground: 210 40% 98%;
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
   --input: 214.3 31.8% 91.4%;
+  --border: 214.3 31.8% 91.4%;
   --ring: 222.2 84% 4.9%;
   --radius: 0.5rem;
 }
 
-body {
-  background: hsl(var(--background));
-  color: hsl(var(--foreground));
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    @apply min-h-screen bg-background text-foreground antialiased;
+  }
+
+  h1 {
+    @apply text-3xl font-semibold tracking-tight;
+  }
+
+  h2 {
+    @apply text-2xl font-semibold tracking-tight;
+  }
+}
+
+@layer components {
+  .page {
+    @apply mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-10;
+  }
+
+  .page-narrow {
+    @apply mx-auto w-full max-w-md;
+  }
+
+  .surface {
+    @apply rounded-xl border bg-white p-6 shadow-sm;
+  }
+
+  .stack {
+    @apply flex flex-col gap-4;
+  }
 }

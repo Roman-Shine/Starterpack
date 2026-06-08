@@ -6,8 +6,10 @@ export default function RegisterPage() {
   const t = useTranslations();
 
   return (
-    <main className="p-6">
-      <h1 className="text-2xl font-semibold">{t("registerTitle")}</h1>
+    <main className="page justify-center">
+      <section className="page-narrow surface stack">
+        <h1>{t("registerTitle")}</h1>
+      </section>
     </main>
   );
 }

@@ -4,8 +4,10 @@ export const dynamic = "force-dynamic";
 
 export default function LandingPage() {
   return (
-    <main className="p-6">
-      <LandingTitle />
+    <main className="page justify-center">
+      <section className="page-narrow surface stack">
+        <LandingTitle />
+      </section>
     </main>
   );
 }
