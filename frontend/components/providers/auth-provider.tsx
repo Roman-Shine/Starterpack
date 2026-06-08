@@ -3,23 +3,10 @@
 import { useMutation } from "@tanstack/react-query";
 import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from "react";
 
-import { AuthUser, getMe, login, logout, refreshSession, register } from "@/lib/auth-api";
+import { getMe, login, logout, refreshSession, register } from "@/lib/auth-api";
+import { AuthUser, LoginInput, RegisterInput } from "@/models/auth";
 
 const TOKEN_KEY = "auth_access_token";
-
-type RegisterInput = {
-  email: string;
-  password: string;
-  firstName?: string;
-  lastName?: string;
-  rememberMe: boolean;
-};
-
-type LoginInput = {
-  email: string;
-  password: string;
-  rememberMe: boolean;
-};
 
 type AuthContextValue = {
   user: AuthUser | null;
