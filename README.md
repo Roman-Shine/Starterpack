@@ -9,6 +9,26 @@
 - `Dockerfile` — сборка бэкенда из корня проекта
 - `docker-compose.yml` — запуск `api` + `db` (PostgreSQL)
 
+## Первая инициализация проекта
+
+После клонирования выполни:
+
+```bash
+make init
+```
+
+Команда:
+- создаст `backend/.venv` (если его нет),
+- установит зависимости `backend` и `frontend`,
+- применит миграции для локальной базы.
+
+После этого можно запускать dev-серверы:
+
+```bash
+make dev-backend
+make dev-frontend
+```
+
 ## Локальный запуск backend без Docker (SQLite)
 
 ```bash
